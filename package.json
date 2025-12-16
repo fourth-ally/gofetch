@@ -1,7 +1,7 @@
 {
   "name": "gofetch-wasm",
-  "version": "1.0.7",
-  "description": "A robust, developer-friendly HTTP client library compiled from Go to WebAssembly, inspired by Axios",
+  "version": "1.0.8",
+  "description": "A robust HTTP client library compiled from Go to WebAssembly for JavaScript/TypeScript applications",
   "main": "dist/gofetch.js",
   "types": "dist/gofetch.d.ts",
   "files": [
