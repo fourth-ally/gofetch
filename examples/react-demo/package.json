@@ -11,7 +11,7 @@
     "build:wasm": "cd ../.. && GOOS=js GOARCH=wasm go build -o examples/react-demo/public/gofetch.wasm ./cmd/wasm && cp $(go env GOROOT)/lib/wasm/wasm_exec.js examples/react-demo/public/"
   },
   "dependencies": {
-    "gofetch-wasm": "^1.0.7",
+    "gofetch-wasm": "^1.0.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
