@@ -18,7 +18,7 @@ A robust, developer-friendly Go HTTP client library inspired by Axios, providing
 ## 📦 Installation
 
 ```bash
-go get github.com/nikoskechris/gofetch
+go get github.com/nkechr1s/gofetch
 ```
 
 ## 🚀 Quick Start
@@ -31,7 +31,7 @@ import (
     "fmt"
     "time"
     
-    "github.com/nikoskechris/gofetch"
+    "github.com/nkechr1s/gofetch"
 )
 
 type User struct {

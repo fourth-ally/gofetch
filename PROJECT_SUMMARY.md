@@ -155,7 +155,7 @@ import (
     "context"
     "fmt"
     "time"
-    "github.com/nikoskechris/gofetch"
+    "github.com/nkechr1s/gofetch"
 )
 
 func main() {

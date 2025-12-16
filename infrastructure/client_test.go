@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nikoskechris/gofetch/domain/errors"
+	"github.com/nkechr1s/gofetch/domain/errors"
 )
 
 type TestUser struct {

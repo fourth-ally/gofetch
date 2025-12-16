@@ -8,7 +8,7 @@ import (
 	"errors"
 	"syscall/js"
 
-	"github.com/nikoskechris/gofetch/infrastructure"
+	"github.com/nkechr1s/gofetch/infrastructure"
 )
 
 var defaultClient *infrastructure.Client

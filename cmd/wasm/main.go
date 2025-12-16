@@ -4,7 +4,7 @@
 package main
 
 import (
-	"github.com/nikoskechris/gofetch/wasm"
+	"github.com/nkechr1s/gofetch/wasm"
 )
 
 func main() {

@@ -4,7 +4,7 @@
 package gofetch
 
 import (
-	"github.com/nikoskechris/gofetch/infrastructure"
+	"github.com/nkechr1s/gofetch/infrastructure"
 )
 
 // NewClient creates a new GoFetch client instance.

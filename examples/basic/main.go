@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/nikoskechris/gofetch"
-	"github.com/nikoskechris/gofetch/domain/errors"
+	"github.com/nkechr1s/gofetch"
+	"github.com/nkechr1s/gofetch/domain/errors"
 )
 
 // User represents a user from the API.

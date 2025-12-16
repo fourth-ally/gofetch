@@ -5,7 +5,7 @@ Welcome to GoFetch! This guide will help you get started quickly.
 ## Installation
 
 ```bash
-go get github.com/nikoskechris/gofetch
+go get github.com/nkechr1s/gofetch
 ```
 
 ## 5-Minute Tutorial
@@ -18,7 +18,7 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/nikoskechris/gofetch"
+    "github.com/nkechr1s/gofetch"
 )
 
 type User struct {

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nikoskechris/gofetch/domain/contracts"
-	"github.com/nikoskechris/gofetch/domain/errors"
-	"github.com/nikoskechris/gofetch/domain/models"
+	"github.com/nkechr1s/gofetch/domain/contracts"
+	"github.com/nkechr1s/gofetch/domain/errors"
+	"github.com/nkechr1s/gofetch/domain/models"
 )
 
 // Client is the main HTTP client implementation.

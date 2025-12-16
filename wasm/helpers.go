@@ -8,7 +8,7 @@ import (
 	"syscall/js"
 	"time"
 
-	"github.com/nikoskechris/gofetch/domain/models"
+	"github.com/nkechr1s/gofetch/domain/models"
 )
 
 // promiseWrapper wraps a Go function in a JavaScript Promise.

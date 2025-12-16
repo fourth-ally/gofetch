@@ -3,7 +3,7 @@ package infrastructure
 import (
 	"io"
 
-	"github.com/nikoskechris/gofetch/domain/contracts"
+	"github.com/nkechr1s/gofetch/domain/contracts"
 )
 
 // progressReader wraps an io.Reader to track progress.
