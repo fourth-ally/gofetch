@@ -10,4 +10,18 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   },
+  optimizeDeps: {
+    exclude: ['gofetch-wasm'],
+    esbuildOptions: {
+      target: 'esnext'
+    }
+  },
+  build: {
+    target: 'esnext'
+  },
+  assetsInclude: ['**/*.wasm'],
+  // Don't try to parse or transform the gofetch-wasm package
+  ssr: {
+    noExternal: []
+  }
 })

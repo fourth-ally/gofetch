@@ -245,9 +245,24 @@ func makeSetBaseURLFunc(client *infrastructure.Client) func(js.Value, []js.Value
 func makeSetTimeoutFunc(client *infrastructure.Client) func(js.Value, []js.Value) interface{} {
 	return func(this js.Value, args []js.Value) interface{} {
 		if len(args) < 1 {
-			return nil
+			return this
 		}
-		timeout := args[0].Int()
+
+		// JavaScript numbers can be passed as different types
+		// Try to get as float first, then convert to int
+		var timeout int
+		jsVal := args[0]
+
+		// Check the type and convert appropriately
+		switch jsVal.Type() {
+		case js.TypeNumber:
+			// Get as float and convert to int (milliseconds)
+			timeout = int(jsVal.Float())
+		default:
+			// If it's not a number, return without setting
+			return this
+		}
+
 		client.SetTimeout(durationFromMillis(timeout))
 		return this
 	}

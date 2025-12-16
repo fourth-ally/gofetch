@@ -1,0 +1,41 @@
+{
+  "name": "gofetch-wasm",
+  "version": "1.0.7",
+  "description": "A robust, developer-friendly HTTP client library compiled from Go to WebAssembly, inspired by Axios",
+  "main": "dist/gofetch.js",
+  "types": "dist/gofetch.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-npm.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "http",
+    "client",
+    "axios",
+    "fetch",
+    "wasm",
+    "webassembly",
+    "go",
+    "golang",
+    "request",
+    "api"
+  ],
+  "author": "Nikos Kechris",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nkechr1s/gofetch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nkechr1s/gofetch/issues"
+  },
+  "homepage": "https://github.com/nkechr1s/gofetch#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

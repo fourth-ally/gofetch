@@ -1,70 +1,23 @@
 import { useState, useEffect } from 'react'
+import gofetch from 'gofetch-wasm'
 
 export default function useGoFetch() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [gofetch, setGoFetch] = useState(null)
+  const [client, setClient] = useState(null)
   const [logs, setLogs] = useState([])
-
-  useEffect(() => {
-    const loadWasm = async () => {
-      try {
-        // Load wasm_exec.js
-        const wasmExecScript = document.createElement('script')
-        wasmExecScript.src = '/wasm_exec.js'
-        
-        await new Promise((resolve, reject) => {
-          wasmExecScript.onload = resolve
-          wasmExecScript.onerror = reject
-          document.head.appendChild(wasmExecScript)
-        })
-
-        // Initialize Go WASM
-        const go = new window.Go()
-        const result = await WebAssembly.instantiateStreaming(
-          fetch('/gofetch.wasm'),
-          go.importObject
-        )
-        
-        // Run the WASM module
-        go.run(result.instance)
-
-        // Check if gofetch is available
-        if (!window.gofetch) {
-          throw new Error('gofetch not found in window object')
-        }
-
-        // Configure the default client
-        window.gofetch.setBaseURL('https://jsonplaceholder.typicode.com')
-        window.gofetch.setTimeout(10000) // 10 seconds
-
-        // Wrap gofetch methods to add logging
-        const wrappedGoFetch = createWrappedClient(window.gofetch)
-
-        setGoFetch(wrappedGoFetch)
-        addLog('success', 'GoFetch WASM module loaded successfully!')
-        setIsLoading(false)
-      } catch (err) {
-        console.error('Failed to load GoFetch WASM:', err)
-        setError(err.message)
-        setIsLoading(false)
-      }
-    }
-
-    loadWasm()
-  }, [])
 
   const addLog = (type, message, data = null) => {
     const timestamp = new Date().toLocaleTimeString()
     setLogs(prev => [...prev, { timestamp, type, message, data }])
   }
 
-  const createWrappedClient = (client) => {
+  const createWrappedClient = (gofetchClient) => {
     return {
       get: async (path, params = null) => {
         addLog('info', `GET ${path}`, params)
         try {
-          const response = await client.get(path, params)
+          const response = await gofetchClient.get(path, params)
           addLog('success', `✓ GET ${path} - Status: ${response.statusCode}`, response.data)
           return response
         } catch (err) {
@@ -76,7 +29,7 @@ export default function useGoFetch() {
       post: async (path, params = null, body = null) => {
         addLog('info', `POST ${path}`, body)
         try {
-          const response = await client.post(path, params, body)
+          const response = await gofetchClient.post(path, params, body)
           addLog('success', `✓ POST ${path} - Status: ${response.statusCode}`, response.data)
           return response
         } catch (err) {
@@ -88,7 +41,7 @@ export default function useGoFetch() {
       put: async (path, params = null, body = null) => {
         addLog('info', `PUT ${path}`, body)
         try {
-          const response = await client.put(path, params, body)
+          const response = await gofetchClient.put(path, params, body)
           addLog('success', `✓ PUT ${path} - Status: ${response.statusCode}`, response.data)
           return response
         } catch (err) {
@@ -100,7 +53,7 @@ export default function useGoFetch() {
       patch: async (path, params = null, body = null) => {
         addLog('info', `PATCH ${path}`, body)
         try {
-          const response = await client.patch(path, params, body)
+          const response = await gofetchClient.patch(path, params, body)
           addLog('success', `✓ PATCH ${path} - Status: ${response.statusCode}`, response.data)
           return response
         } catch (err) {
@@ -112,7 +65,7 @@ export default function useGoFetch() {
       delete: async (path, params = null) => {
         addLog('info', `DELETE ${path}`, params)
         try {
-          const response = await client.delete(path, params)
+          const response = await gofetchClient.delete(path, params)
           addLog('success', `✓ DELETE ${path} - Status: ${response.statusCode}`)
           return response
         } catch (err) {
@@ -121,12 +74,45 @@ export default function useGoFetch() {
         }
       },
       
-      setBaseURL: (url) => client.setBaseURL(url),
-      setTimeout: (timeout) => client.setTimeout(timeout),
-      setHeader: (key, value) => client.setHeader(key, value),
-      newClient: () => createWrappedClient(client.newClient())
+      setBaseURL: (url) => gofetchClient.setBaseURL(url),
+      setTimeout: (timeout) => gofetchClient.setTimeout(timeout),
+      setHeader: (key, value) => gofetchClient.setHeader(key, value),
+      newClient: async () => {
+        const newClient = await gofetch.newClient()
+        return createWrappedClient(newClient)
+      }
     }
   }
+
+  useEffect(() => {
+    const initGoFetch = async () => {
+      try {
+        console.log('useGoFetch: Starting initialization...')
+        
+        // Create a new client from the npm package
+        const gofetchClient = await gofetch.newClient()
+        
+        console.log('useGoFetch: Client created successfully')
+        
+        // Configure the default client
+        gofetchClient.setBaseURL('https://jsonplaceholder.typicode.com')
+        gofetchClient.setTimeout(10000) // 10 seconds
+
+        // Wrap gofetch methods to add logging
+        const wrappedClient = createWrappedClient(gofetchClient)
+
+        setClient(wrappedClient)
+        addLog('success', 'GoFetch loaded successfully from NPM!')
+        setIsLoading(false)
+      } catch (err) {
+        console.error('Failed to load GoFetch:', err)
+        setError(err.message)
+        setIsLoading(false)
+      }
+    }
+
+    initGoFetch()
+  }, [])
 
   const clearLogs = () => {
     setLogs([])
@@ -135,7 +121,7 @@ export default function useGoFetch() {
   return {
     isLoading,
     error,
-    gofetch,
+    gofetch: client,
     logs,
     clearLogs,
     addLog
