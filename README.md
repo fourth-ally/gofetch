@@ -30,6 +30,25 @@ client.setHeader('Authorization', 'Bearer token123')
 const response = await client.get('/users/1')
 console.log(response.data)
 ```
+We suggest using Vite for the best developer experience and compatibility with WebAssembly. See the Vite configuration note below for a short code snippet to add to your `vite.config.ts`.
+
+### Vite configuration (important)
+
+If your project uses Vite, the dev server may try to process the WASM file and serve it incorrectly (HTML instead of binary). To ensure the WebAssembly file is handled properly, add the following settings to your `vite.config.ts`:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  // ...your existing config
+  optimizeDeps: {
+    exclude: ['gofetch-wasm'],
+  },
+  assetsInclude: ['**/*.wasm'],
+});
+```
+
+If you still see a `WebAssembly.instantiate(): expected magic word` error in the browser, make sure the WASM file is served with the `application/wasm` content-type and consider copying `node_modules/gofetch-wasm/dist/gofetch.wasm` into your `public/` directory or adding a small dev-server middleware to set the header during development.
+
 
 ## API
 
