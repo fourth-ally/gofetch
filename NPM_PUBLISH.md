@@ -54,7 +54,7 @@ npm publish --access public
 
 ### 5. Verify Publication
 
-Visit: https://www.npmjs.com/package/gofetch
+Visit: https://www.npmjs.com/package/gofetch-wasm
 
 ## Using the Published Package
 
@@ -106,7 +106,7 @@ npm publish
 
 ### Publish Fails
 
-- Check if package name is available: https://www.npmjs.com/package/gofetch
+- Check if package name is available: https://www.npmjs.com/package/gofetch-wasm
 - Verify you're logged in: `npm whoami`
 - Check package.json version is unique
 
