@@ -137,6 +137,46 @@ const response = await client.get('/users/1')
 const user = response.data as User
 ```
 
+## Browser Usage & Performance Considerations
+
+`gofetch-wasm` runs a Go-based HTTP client inside the browser via WebAssembly.  
+This provides consistent HTTP behavior across environments, but comes with important trade-offs.
+
+### Bundle Size & Runtime Overhead
+
+- Includes a WebAssembly binary and Go runtime
+- Adds additional bundle size compared to native `fetch` or Axios
+- Introduces JS ↔ WASM bridge overhead per request
+
+Because of this, `gofetch-wasm` **is not a lightweight replacement for `fetch`**.
+
+### When to Use in the Browser
+
+Recommended for:
+- Internal tools
+- Admin dashboards
+- B2B applications
+- Developer tools
+- SDKs that require identical HTTP behavior across browser, Node.js, and edge runtimes
+
+In these cases, the added overhead is usually acceptable and the consistency benefits outweigh the cost.
+
+### When *Not* to Use in the Browser
+
+Not recommended for:
+- Consumer-facing applications
+- Landing pages or marketing sites
+- Mobile-first apps
+- Performance-critical UIs
+- Applications with high-frequency or real-time HTTP requests
+
+For these use cases, native `fetch` or Axios will provide better performance and smaller bundles.
+
+### Design Philosophy
+
+`gofetch-wasm` prioritizes **deterministic behavior and cross-runtime consistency** over minimal bundle size or raw performance.  
+It is designed as an engineering trade-off, not a general-purpose browser HTTP client.
+
 ## License
 
 MIT
