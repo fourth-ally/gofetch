@@ -52,7 +52,8 @@ gofetch/
 ├── domain/                       # Domain layer (core business logic)
 │   ├── models/                   # Domain models
 │   │   ├── config.go            # Configuration model
-│   │   └── response.go          # Response model
+│   │   ├── response.go          # Response model
+│   │   └── retry.go             # Retry and circuit breaker models
 │   ├── contracts/               # Interfaces and contracts
 │   │   └── interceptors.go      # Interceptor contracts
 │   └── errors/                  # Domain errors
@@ -60,7 +61,9 @@ gofetch/
 │
 ├── infrastructure/              # Infrastructure layer (implementation)
 │   ├── client.go               # HTTP client implementation
-│   └── progress.go             # Progress tracking utilities
+│   ├── progress.go             # Progress tracking utilities
+│   ├── retry.go                # Retry manager with backoff strategies
+│   └── circuit_breaker.go      # Circuit breaker implementation
 │
 ├── tests/                       # Test suite (organized by feature)
 │   ├── client_creation_test.go # Client initialization tests
@@ -109,6 +112,9 @@ The domain layer contains the core business logic and is independent of external
 **Models** (`domain/models/`)
 - `Config`: Client configuration with merge capabilities
 - `Response`: HTTP response wrapper
+- `RetryOptions`: Retry and circuit breaker configuration
+- `BackoffStrategy`: Exponential, linear, or fixed backoff
+- `CircuitBreakerState`: Circuit state (closed, open, half-open)
 
 **Contracts** (`domain/contracts/`)
 - `RequestInterceptor`: Request modification interface
@@ -130,6 +136,19 @@ The infrastructure layer implements the domain contracts and provides the actual
 - URL building (path params & query strings)
 - JSON marshaling/unmarshaling
 - Error handling
+- Retry wrapper with circuit breaker integration
+
+**Retry Manager** (`infrastructure/retry.go`)
+- Retry decision logic (status codes, attempts)
+- Backoff calculation (exponential, linear, fixed)
+- Jitter application for delay randomization
+- Wait functionality with context support
+
+**Circuit Breaker** (`infrastructure/circuit_breaker.go`)
+- Per-endpoint failure tracking
+- State management (closed, open, half-open)
+- Automatic state transitions based on threshold and timeout
+- Thread-safe with mutex protection
 
 **Progress** (`infrastructure/progress.go`)
 - Progress tracking for uploads/downloads
@@ -202,13 +221,13 @@ baseClient := gofetch.NewClient()
 derivedClient := baseClient.NewInstance()
 ```
 
-## Testing Strategy
+### Testing Strategy
 
 **Coverage Requirement: Minimum 80%** ✅
 
 The project maintains a strict test coverage policy:
-- **Current Coverage**: 87.7% (exceeds 80% minimum)
-- **Total Tests**: 20 comprehensive unit tests
+- **Current Coverage**: 80.8% (exceeds 80% minimum)
+- **Total Tests**: 31 comprehensive unit tests
 - **Organization**: Tests organized by feature in separate files
 
 ### Test Categories
@@ -249,6 +268,17 @@ The project maintains a strict test coverage policy:
    - Config merging
    - HTTPError.Error() method
 
+8. **Retry Logic** (`retry_test.go`)
+   - Basic retry with success after failures
+   - Retry exhaustion scenarios
+   - Exponential, linear, and fixed backoff strategies
+   - Jitter randomization
+   - Custom status code retry (e.g., 429)
+   - Circuit breaker opening after threshold
+   - Per-endpoint circuit tracking
+   - Circuit breaker recovery (half-open → closed)
+   - Circuit breaker without retries
+
 ### Testing Tools
 
 - **HTTP Mocking**: Using `httptest.Server` for isolated testing
@@ -259,7 +289,7 @@ The project maintains a strict test coverage policy:
 ### Coverage Policy
 
 - **Minimum Required**: 80%
-- **Current Level**: 87.7%
+- **Current Level**: 80.8%
 - **Enforcement**: Coverage reports generated with each test run
 - **Focus Areas**: All public APIs must be tested
 

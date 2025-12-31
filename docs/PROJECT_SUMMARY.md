@@ -44,7 +44,15 @@
    - Inherits all settings from parent
    - Independent configuration changes
 
-8. **WebAssembly Support**
+8. **Retry Logic & Circuit Breaker**
+   - Automatic request retry with configurable max attempts
+   - Three backoff strategies: exponential, linear, fixed
+   - Optional jitter to prevent thundering herd
+   - Per-endpoint circuit breaker to prevent cascading failures
+   - Configurable failure threshold and timeout
+   - Independent operation (circuit breaker works without retries)
+
+9. **WebAssembly Support**
    - Full WASM compilation support
    - JavaScript bridge with Promise support
    - Browser-ready with async/await API
@@ -64,14 +72,19 @@ gofetch/
 │
 ├── 📁 domain/                 # Domain layer (DDD)
 │   ├── models/               # Domain models
+│   │   ├── config.go        # Configuration
+│   │   ├── response.go      # Response model
+│   │   └── retry.go         # Retry & circuit breaker config
 │   ├── contracts/            # Interfaces
 │   └── errors/              # Domain errors
 │
 ├── 📁 infrastructure/         # Infrastructure layer
 │   ├── client.go            # HTTP client implementation
-│   └── progress.go          # Progress tracking
+│   ├── progress.go          # Progress tracking
+│   ├── retry.go             # Retry manager
+│   └── circuit_breaker.go   # Circuit breaker
 │
-├── 📁 tests/                  # Test suite (87.7% coverage)
+├── 📁 tests/                  # Test suite (80.8% coverage)
 │   ├── common_test.go       # Shared test utilities
 │   ├── client_creation_test.go
 │   ├── http_methods_test.go
@@ -79,7 +92,8 @@ gofetch/
 │   ├── error_handling_test.go
 │   ├── interceptors_test.go
 │   ├── context_test.go
-│   └── advanced_features_test.go
+│   ├── advanced_features_test.go
+│   └── retry_test.go        # Retry & circuit breaker tests
 │
 ├── 📁 wasm/                   # WebAssembly bridge
 │   ├── bridge.go            # JS bridge
@@ -119,25 +133,33 @@ gofetch/
 | Cancellation | ✅ | Via context cancellation |
 | Progress Callbacks | ✅ | Upload + download progress |
 | Instance Creation | ✅ | NewInstance() with settings inheritance |
+| Retry Logic | ✅ | Automatic retry with backoff strategies |
+| Circuit Breaker | ✅ | Per-endpoint failure tracking |
+| Backoff Strategies | ✅ | Exponential, linear, fixed |
+| Jitter | ✅ | Random delay to prevent thundering herd |
 | WASM Support | ✅ | Full compilation + JS bridge |
 | WASM Promises | ✅ | Async/await in JavaScript |
 | Domain-Driven Design | ✅ | Clean layered architecture |
 
 ### 🧪 Testing
 
-- **20 comprehensive unit tests** covering all functionality
-- **87.7% code coverage** (exceeds 80% minimum requirement) ✅
+- **31 comprehensive unit tests** covering all functionality
+- **80.8% code coverage** (exceeds 80% minimum requirement) ✅
 - **Organized test suite** - tests separated by feature category
 - **HTTP mocking** with `httptest.Server`
 - **All tests passing** ✅
 
-#### Coverage Breakdown
-- Client creation and configuration: 100%
-- HTTP methods (GET, POST, PUT, PATCH, DELETE): 100%
-- Interceptors: 100%
-- Progress tracking: 100%
-- URL building: 87.5%
-- Request execution: 80%
+#### Test Categories
+- Client creation and configuration
+- HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- Path and query parameters
+- Error handling and status validation
+- Request and response interceptors
+- Context cancellation and timeouts
+- Progress tracking and data transformers
+- **Retry logic** (exponential, linear, fixed backoff)
+- **Circuit breaker** (state transitions, per-endpoint tracking)
+- **Jitter randomization** for retry delays
 
 ### 📚 Documentation
 
@@ -174,13 +196,20 @@ import (
     "fmt"
     "time"
     "github.com/fourth-ally/gofetch"
+    "github.com/fourth-ally/gofetch/domain/models"
 )
 
 func main() {
     client := gofetch.NewClient().
         SetBaseURL("https://api.example.com").
         SetTimeout(10 * time.Second).
-        SetHeader("Authorization", "Bearer token")
+        SetHeader("Authorization", "Bearer token").
+        SetRetryOptions(&models.RetryOptions{
+            MaxRetries:   3,
+            Backoff:      models.BackoffExponential,
+            Jitter:       true,
+            CircuitBreaker: true,
+        })
     
     var data interface{}
     resp, err := client.Get(context.Background(), "/endpoint", nil, &data)
@@ -225,10 +254,11 @@ make wasm-serve
 
 ### 📊 Project Statistics
 
-- **Lines of Code**: ~1,500+
-- **Files**: 20+
+- **Lines of Code**: ~2,000+
+- **Files**: 25+
 - **Packages**: 7
-- **Test Coverage**: 69%
+- **Test Coverage**: 80.8%
+- **Total Tests**: 31
 - **Build Time**: < 1 second
 - **WASM Binary**: ~2MB (compressible)
 
@@ -260,11 +290,12 @@ make clean        # Clean artifacts
 
 1. **Axios-like API** - Familiar interface for JS developers
 2. **Domain-Driven Design** - Clean, maintainable architecture
-3. **WASM Ready** - Run in browsers with full functionality
-4. **Zero Dependencies** - Lightweight and secure
-5. **Progress Tracking** - Built-in upload/download progress
-6. **Interceptor Chain** - Powerful request/response middleware
-7. **Context Integration** - Native Go cancellation support
+3. **Retry & Circuit Breaker** - Built-in resilience with configurable strategies
+4. **WASM Ready** - Run in browsers with full functionality
+5. **Zero Dependencies** - Lightweight and secure
+6. **Progress Tracking** - Built-in upload/download progress
+7. **Interceptor Chain** - Powerful request/response middleware
+8. **Context Integration** - Native Go cancellation support
 
 ### 📝 Next Steps
 

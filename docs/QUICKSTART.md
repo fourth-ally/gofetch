@@ -59,7 +59,7 @@ _, err := client.Get(context.Background(), "/users", nil, &users)
 ### 3. POST Request
 
 ```go
-newUser := User{Name: "John Doe"}
+newUser := User{Name: "Nikos Doe"}
 
 var createdUser User
 _, err := client.Post(

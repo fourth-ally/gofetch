@@ -20,15 +20,16 @@ func init() {
 // ExposeFunctions exposes GoFetch functions to JavaScript.
 func ExposeFunctions() {
 	js.Global().Set("gofetch", js.ValueOf(map[string]interface{}{
-		"newClient":  js.FuncOf(newClient),
-		"get":        js.FuncOf(get),
-		"post":       js.FuncOf(post),
-		"put":        js.FuncOf(put),
-		"patch":      js.FuncOf(patch),
-		"delete":     js.FuncOf(delete_),
-		"setBaseURL": js.FuncOf(setBaseURL),
-		"setTimeout": js.FuncOf(setTimeout),
-		"setHeader":  js.FuncOf(setHeader),
+		"newClient":       js.FuncOf(newClient),
+		"get":             js.FuncOf(get),
+		"post":            js.FuncOf(post),
+		"put":             js.FuncOf(put),
+		"patch":           js.FuncOf(patch),
+		"delete":          js.FuncOf(delete_),
+		"setBaseURL":      js.FuncOf(setBaseURL),
+		"setTimeout":      js.FuncOf(setTimeout),
+		"setHeader":       js.FuncOf(setHeader),
+		"setRetryOptions": js.FuncOf(setRetryOptions),
 	}))
 }
 
@@ -38,15 +39,16 @@ func newClient(this js.Value, args []js.Value) interface{} {
 
 	// Return a JavaScript object with methods
 	return map[string]interface{}{
-		"get":         js.FuncOf(makeGetFunc(client)),
-		"post":        js.FuncOf(makePostFunc(client)),
-		"put":         js.FuncOf(makePutFunc(client)),
-		"patch":       js.FuncOf(makePatchFunc(client)),
-		"delete":      js.FuncOf(makeDeleteFunc(client)),
-		"setBaseURL":  js.FuncOf(makeSetBaseURLFunc(client)),
-		"setTimeout":  js.FuncOf(makeSetTimeoutFunc(client)),
-		"setHeader":   js.FuncOf(makeSetHeaderFunc(client)),
-		"newInstance": js.FuncOf(makeNewInstanceFunc(client)),
+		"get":             js.FuncOf(makeGetFunc(client)),
+		"post":            js.FuncOf(makePostFunc(client)),
+		"put":             js.FuncOf(makePutFunc(client)),
+		"patch":           js.FuncOf(makePatchFunc(client)),
+		"delete":          js.FuncOf(makeDeleteFunc(client)),
+		"setBaseURL":      js.FuncOf(makeSetBaseURLFunc(client)),
+		"setTimeout":      js.FuncOf(makeSetTimeoutFunc(client)),
+		"setHeader":       js.FuncOf(makeSetHeaderFunc(client)),
+		"setRetryOptions": js.FuncOf(makeSetRetryOptionsFunc(client)),
+		"newInstance":     js.FuncOf(makeNewInstanceFunc(client)),
 	}
 }
 
@@ -88,6 +90,11 @@ func setTimeout(this js.Value, args []js.Value) interface{} {
 // setHeader sets a header on the default client.
 func setHeader(this js.Value, args []js.Value) interface{} {
 	return makeSetHeaderFunc(defaultClient)(this, args)
+}
+
+// setRetryOptions sets retry options on the default client.
+func setRetryOptions(this js.Value, args []js.Value) interface{} {
+	return makeSetRetryOptionsFunc(defaultClient)(this, args)
 }
 
 // Helper functions to create closures for specific client instances
@@ -278,19 +285,33 @@ func makeSetHeaderFunc(client *infrastructure.Client) func(js.Value, []js.Value)
 	}
 }
 
+func makeSetRetryOptionsFunc(client *infrastructure.Client) func(js.Value, []js.Value) interface{} {
+	return func(this js.Value, args []js.Value) interface{} {
+		if len(args) < 1 {
+			return this
+		}
+
+		jsOptions := args[0]
+		options := jsToRetryOptions(jsOptions)
+		client.SetRetryOptions(options)
+		return this
+	}
+}
+
 func makeNewInstanceFunc(client *infrastructure.Client) func(js.Value, []js.Value) interface{} {
 	return func(this js.Value, args []js.Value) interface{} {
 		newClient := client.NewInstance()
 		return map[string]interface{}{
-			"get":         js.FuncOf(makeGetFunc(newClient)),
-			"post":        js.FuncOf(makePostFunc(newClient)),
-			"put":         js.FuncOf(makePutFunc(newClient)),
-			"patch":       js.FuncOf(makePatchFunc(newClient)),
-			"delete":      js.FuncOf(makeDeleteFunc(newClient)),
-			"setBaseURL":  js.FuncOf(makeSetBaseURLFunc(newClient)),
-			"setTimeout":  js.FuncOf(makeSetTimeoutFunc(newClient)),
-			"setHeader":   js.FuncOf(makeSetHeaderFunc(newClient)),
-			"newInstance": js.FuncOf(makeNewInstanceFunc(newClient)),
+			"get":             js.FuncOf(makeGetFunc(newClient)),
+			"post":            js.FuncOf(makePostFunc(newClient)),
+			"put":             js.FuncOf(makePutFunc(newClient)),
+			"patch":           js.FuncOf(makePatchFunc(newClient)),
+			"delete":          js.FuncOf(makeDeleteFunc(newClient)),
+			"setBaseURL":      js.FuncOf(makeSetBaseURLFunc(newClient)),
+			"setTimeout":      js.FuncOf(makeSetTimeoutFunc(newClient)),
+			"setHeader":       js.FuncOf(makeSetHeaderFunc(newClient)),
+			"setRetryOptions": js.FuncOf(makeSetRetryOptionsFunc(newClient)),
+			"newInstance":     js.FuncOf(makeNewInstanceFunc(newClient)),
 		}
 	}
 }
