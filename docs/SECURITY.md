@@ -4,13 +4,16 @@
 
 The following versions of this project are currently supported with security updates:
 
-| Version | Supported |
-| ------- | --------- |
-| 1.0.11   | ✅         |
-| 1.0.10   | ✅         |
-| < 1.0.10 | ❌         |
+| Version | Supported | Notes |
+| ------- | --------- | ----- |
+| 1.0.12   | ✅         | Latest - includes retry logic & circuit breaker |
+| 1.0.11   | ✅         | Previous stable version |
+| 1.0.10   | ⚠️         | Limited support - upgrade recommended |
+| < 1.0.10 | ❌         | No longer supported |
 
-> **Note:** Only version 1.0.10 receive security fixes. Users are strongly encouraged to upgrade to the latest version.
+> **Note:** Only versions 1.0.10 and above receive security fixes. Users are strongly encouraged to upgrade to version 1.0.12 for the latest features and security improvements.
+
+> **Feature Availability:** Retry logic and circuit breaker features are only available in version 1.0.12 and above.
 
 ---
 
