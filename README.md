@@ -177,6 +177,26 @@ For these use cases, native `fetch` or Axios will provide better performance and
 `gofetch-wasm` prioritizes **deterministic behavior and cross-runtime consistency** over minimal bundle size or raw performance.  
 It is designed as an engineering trade-off, not a general-purpose browser HTTP client.
 
+## Contributing
+
+### Test Coverage Requirement
+
+All contributions must maintain **minimum 80% test coverage**.
+
+Run tests with coverage:
+```bash
+make test
+make coverage  # Generates HTML report
+```
+
+Check current coverage:
+```bash
+go test -coverprofile=coverage.out -coverpkg=./infrastructure,./domain/... ./tests/...
+go tool cover -func=coverage.out | tail -1
+```
+
+Current coverage: **87.7%** ✅
+
 ## License
 
 MIT

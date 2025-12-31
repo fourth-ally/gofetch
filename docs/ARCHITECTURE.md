@@ -40,6 +40,15 @@ gofetch/
 ├── Makefile                      # Build automation
 ├── .gitignore                    # Git ignore rules
 │
+├── docs/                         # Documentation
+│   ├── ARCHITECTURE.md          # This file - architecture overview
+│   ├── CHANGELOG.md             # Version history and changes
+│   ├── GO_USAGE.md              # Go usage examples
+│   ├── NPM_PUBLISH.md           # NPM publishing guide
+│   ├── PROJECT_SUMMARY.md       # Project overview
+│   ├── QUICKSTART.md            # Quick start guide
+│   └── RELEASE.md               # Release process
+│
 ├── domain/                       # Domain layer (core business logic)
 │   ├── models/                   # Domain models
 │   │   ├── config.go            # Configuration model
@@ -51,8 +60,15 @@ gofetch/
 │
 ├── infrastructure/              # Infrastructure layer (implementation)
 │   ├── client.go               # HTTP client implementation
-│   ├── client_test.go          # Client tests
 │   └── progress.go             # Progress tracking utilities
+│
+├── tests/                       # Test suite (organized by feature)
+│   ├── client_creation_test.go # Client initialization tests
+│   ├── http_methods_test.go    # GET, POST, etc. tests
+│   ├── parameters_test.go      # Path & query parameter tests
+│   ├── error_handling_test.go  # Error handling tests
+│   ├── interceptors_test.go    # Interceptor tests
+│   └── context_test.go         # Context & cancellation tests
 │
 ├── wasm/                        # WebAssembly bridge
 │   ├── bridge.go               # JavaScript bridge functions
@@ -65,11 +81,22 @@ gofetch/
 ├── examples/                    # Usage examples
 │   ├── basic/                  # Basic usage example
 │   │   └── main.go
+│   ├── react-demo/             # React + Vite demo
+│   │   ├── src/
+│   │   │   └── hooks/
+│   │   │       └── useGoFetch.js
+│   │   └── package.json
+│   ├── vue-demo/               # Vue + Vite demo
+│   │   ├── src/
+│   │   │   └── composables/
+│   │   │       └── useGoFetch.js
+│   │   └── package.json
 │   └── wasm/                   # WebAssembly demo
 │       ├── index.html          # Demo HTML page
 │       └── serve.sh            # Local server script
 │
 └── scripts/                     # Build scripts
+    ├── build-npm.js            # NPM package build script
     └── build-wasm.sh           # WASM build script
 ```
 
@@ -177,9 +204,64 @@ derivedClient := baseClient.NewInstance()
 
 ## Testing Strategy
 
-- **Unit Tests**: Comprehensive tests for all client functionality
+**Coverage Requirement: Minimum 80%** ✅
+
+The project maintains a strict test coverage policy:
+- **Current Coverage**: 87.7% (exceeds 80% minimum)
+- **Total Tests**: 20 comprehensive unit tests
+- **Organization**: Tests organized by feature in separate files
+
+### Test Categories
+
+1. **Client Creation** (`client_creation_test.go`)
+   - Client initialization and configuration
+   - Fluent interface testing
+   - Derived client instances
+
+2. **HTTP Methods** (`http_methods_test.go`)
+   - GET, POST, PUT, PATCH, DELETE requests
+   - Request/response handling
+   - JSON marshaling/unmarshaling
+
+3. **Parameters** (`parameters_test.go`)
+   - Path parameter substitution
+   - Query parameter encoding
+   - URL building
+
+4. **Error Handling** (`error_handling_test.go`)
+   - HTTP error responses
+   - Custom status validators
+   - Error message formatting
+
+5. **Interceptors** (`interceptors_test.go`)
+   - Request interceptor chain
+   - Response interceptor chain
+   - Interceptor execution order
+
+6. **Context** (`context_test.go`)
+   - Context cancellation
+   - Timeout handling
+   - Request abortion
+
+7. **Advanced Features** (`advanced_features_test.go`)
+   - Data transformers
+   - Upload/download progress callbacks
+   - Config merging
+   - HTTPError.Error() method
+
+### Testing Tools
+
 - **HTTP Mocking**: Using `httptest.Server` for isolated testing
-- **Test Coverage**: All major paths including error cases
+- **Coverage Analysis**: `go test -coverprofile=coverage.out`
+- **Race Detection**: Tests run with `-race` flag
+- **Continuous Coverage**: Coverage checked on every test run
+
+### Coverage Policy
+
+- **Minimum Required**: 80%
+- **Current Level**: 87.7%
+- **Enforcement**: Coverage reports generated with each test run
+- **Focus Areas**: All public APIs must be tested
 
 ## Build Commands
 

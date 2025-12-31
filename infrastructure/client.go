@@ -269,6 +269,11 @@ func (c *Client) Post(ctx context.Context, path string, params map[string]interf
 	return c.executeRequest(ctx, http.MethodPost, path, params, body, target, nil)
 }
 
+// Config returns the client configuration for testing purposes.
+func (c *Client) Config() *models.Config {
+	return c.config
+}
+
 // Put performs a PUT request.
 func (c *Client) Put(ctx context.Context, path string, params map[string]interface{}, body interface{}, target interface{}) (*models.Response, error) {
 	return c.executeRequest(ctx, http.MethodPut, path, params, body, target, nil)

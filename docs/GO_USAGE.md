@@ -322,7 +322,45 @@ GOOS=js GOARCH=wasm go build -o gofetch.wasm ./cmd/wasm
 
 ## Testing
 
-Run the example:
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run with coverage report
+make coverage
+
+# Run specific test file
+go test -v ./tests/http_methods_test.go
+
+# Check coverage
+go test -coverprofile=coverage.out -coverpkg=./infrastructure,./domain/... ./tests/...
+go tool cover -func=coverage.out | tail -1
+```
+
+### Coverage Requirements
+
+- **Minimum Required**: 80%
+- **Current Coverage**: 87.7% ✅
+- **Total Tests**: 20
+
+All contributions must maintain the 80% minimum coverage threshold.
+
+### Test Organization
+
+Tests are organized by feature:
+- `client_creation_test.go` - Client initialization
+- `http_methods_test.go` - HTTP request methods
+- `parameters_test.go` - URL parameters
+- `error_handling_test.go` - Error scenarios
+- `interceptors_test.go` - Request/response interceptors
+- `context_test.go` - Context and cancellation
+- `advanced_features_test.go` - Progress, transformers, config merge
+
+## Running Examples
+
+Run the basic example:
 
 ```bash
 go run examples/basic/main.go
