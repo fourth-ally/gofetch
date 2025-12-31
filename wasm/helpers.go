@@ -109,3 +109,73 @@ func responseToJS(resp *models.Response) interface{} {
 func durationFromMillis(ms int) time.Duration {
 	return time.Duration(ms) * time.Millisecond
 }
+
+// jsToRetryOptions converts JavaScript retry options to Go RetryOptions.
+func jsToRetryOptions(jsOpts js.Value) *models.RetryOptions {
+	opts := models.NewRetryOptions()
+
+	if jsOpts.Type() != js.TypeObject {
+		return opts
+	}
+
+	// MaxRetries
+	if maxRetries := jsOpts.Get("maxRetries"); maxRetries.Type() == js.TypeNumber {
+		opts.MaxRetries = int(maxRetries.Int())
+	}
+
+	// InitialDelay (milliseconds)
+	if initialDelay := jsOpts.Get("initialDelay"); initialDelay.Type() == js.TypeNumber {
+		opts.InitialDelay = durationFromMillis(int(initialDelay.Int()))
+	}
+
+	// MaxDelay (milliseconds)
+	if maxDelay := jsOpts.Get("maxDelay"); maxDelay.Type() == js.TypeNumber {
+		opts.MaxDelay = durationFromMillis(int(maxDelay.Int()))
+	}
+
+	// Backoff strategy
+	if backoff := jsOpts.Get("backoff"); backoff.Type() == js.TypeString {
+		opts.Backoff = models.BackoffStrategy(backoff.String())
+	}
+
+	// Jitter
+	if jitter := jsOpts.Get("jitter"); jitter.Type() == js.TypeBoolean {
+		opts.Jitter = jitter.Bool()
+	}
+
+	// JitterFraction
+	if jitterFraction := jsOpts.Get("jitterFraction"); jitterFraction.Type() == js.TypeNumber {
+		opts.JitterFraction = jitterFraction.Float()
+	}
+
+	// RetryOnStatusCodes
+	if retryOn := jsOpts.Get("retryOnStatusCodes"); retryOn.Type() == js.TypeObject {
+		length := retryOn.Length()
+		opts.RetryOnStatusCodes = make([]int, length)
+		for i := 0; i < length; i++ {
+			opts.RetryOnStatusCodes[i] = int(retryOn.Index(i).Int())
+		}
+	}
+
+	// CircuitBreaker
+	if cb := jsOpts.Get("circuitBreaker"); cb.Type() == js.TypeBoolean {
+		opts.CircuitBreaker = cb.Bool()
+	}
+
+	// CircuitBreakerThreshold
+	if threshold := jsOpts.Get("circuitBreakerThreshold"); threshold.Type() == js.TypeNumber {
+		opts.CircuitBreakerThreshold = int(threshold.Int())
+	}
+
+	// CircuitBreakerTimeout (milliseconds)
+	if timeout := jsOpts.Get("circuitBreakerTimeout"); timeout.Type() == js.TypeNumber {
+		opts.CircuitBreakerTimeout = durationFromMillis(int(timeout.Int()))
+	}
+
+	// CircuitBreakerHalfOpenRequests
+	if halfOpen := jsOpts.Get("circuitBreakerHalfOpenRequests"); halfOpen.Type() == js.TypeNumber {
+		opts.CircuitBreakerHalfOpenRequests = int(halfOpen.Int())
+	}
+
+	return opts
+}

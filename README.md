@@ -81,6 +81,37 @@ const response = await client.patch(path, params, body)
 const response = await client.delete(path, params)
 ```
 
+### Retry Logic & Circuit Breaker
+
+```javascript
+// Configure automatic retry with exponential backoff
+client.setRetryOptions({
+  maxRetries: 3,
+  initialDelay: 100,              // milliseconds
+  maxDelay: 30000,                // milliseconds
+  backoff: 'exponential',         // 'exponential', 'linear', or 'fixed'
+  jitter: true,                   // Add random jitter
+  jitterFraction: 0.3,            // 30% jitter
+  retryOnStatusCodes: [429, 503], // Retry on rate limit and service unavailable
+  
+  // Circuit breaker to stop requests to failing endpoints
+  circuitBreaker: true,
+  circuitBreakerThreshold: 5,     // Open circuit after 5 failures
+  circuitBreakerTimeout: 60000,   // Keep circuit open for 60 seconds
+  circuitBreakerHalfOpenRequests: 1 // Allow 1 request in half-open state
+})
+
+// Requests will now automatically retry on failure with backoff
+const response = await client.get('/users')
+```
+
+**Features:**
+- **Automatic Retries**: Retry failed requests with configurable max attempts
+- **Backoff Strategies**: Exponential, linear, or fixed delays between retries
+- **Jitter**: Random delay variation to prevent thundering herd
+- **Circuit Breaker**: Per-endpoint failure tracking to prevent cascading failures
+- **Custom Retry Codes**: Specify additional HTTP status codes to retry (e.g., 429)
+
 ### Parameters
 
 ```javascript
@@ -95,7 +126,7 @@ await client.get('/users/:id', params)
 // GET /users/123
 
 // Request body
-const body = { name: 'John', email: 'john@example.com' }
+const body = { name: 'Nikos', email: 'Nikos@example.com' }
 await client.post('/users', null, body)
 ```
 
@@ -195,7 +226,7 @@ go test -coverprofile=coverage.out -coverpkg=./infrastructure,./domain/... ./tes
 go tool cover -func=coverage.out | tail -1
 ```
 
-Current coverage: **87.7%** ✅
+Current coverage: **80.8%** ✅
 
 ## License
 

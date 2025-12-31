@@ -25,6 +25,8 @@ type Client struct {
 	dataTransformer      contracts.DataTransformer
 	uploadProgress       contracts.ProgressCallback
 	downloadProgress     contracts.ProgressCallback
+	retryManager         *RetryManager
+	circuitBreaker       *CircuitBreaker
 }
 
 // NewClient creates a new GoFetch client instance.
@@ -92,6 +94,25 @@ func (c *Client) SetDownloadProgress(callback contracts.ProgressCallback) *Clien
 	return c
 }
 
+// SetRetryOptions configures retry behavior for the client.
+func (c *Client) SetRetryOptions(options *models.RetryOptions) *Client {
+	c.config.RetryOptions = options
+	c.retryManager = NewRetryManager(options)
+
+	// Initialize circuit breaker if enabled
+	if options != nil && options.CircuitBreaker {
+		c.circuitBreaker = NewCircuitBreaker(
+			options.CircuitBreakerThreshold,
+			options.CircuitBreakerTimeout,
+			options.CircuitBreakerHalfOpenRequests,
+		)
+	} else {
+		c.circuitBreaker = nil
+	}
+
+	return c
+}
+
 // NewInstance creates a new client instance inheriting all settings from the current client.
 func (c *Client) NewInstance() *Client {
 	newClient := &Client{
@@ -102,6 +123,8 @@ func (c *Client) NewInstance() *Client {
 		dataTransformer:      c.dataTransformer,
 		uploadProgress:       c.uploadProgress,
 		downloadProgress:     c.downloadProgress,
+		retryManager:         c.retryManager,
+		circuitBreaker:       c.circuitBreaker,
 	}
 
 	copy(newClient.requestInterceptors, c.requestInterceptors)
@@ -145,6 +168,109 @@ func (c *Client) buildURL(path string, params map[string]interface{}) (string, e
 	}
 
 	return fullURL, nil
+}
+
+// executeRequestWithRetry wraps executeRequest with retry logic and circuit breaker.
+func (c *Client) executeRequestWithRetry(ctx context.Context, method, path string, params map[string]interface{}, body interface{}, target interface{}, requestConfig *models.Config) (*models.Response, error) {
+	// Check if retries or circuit breaker are configured
+	hasRetries := c.retryManager != nil && c.config.RetryOptions != nil && c.config.RetryOptions.MaxRetries > 0
+	hasCircuitBreaker := c.circuitBreaker != nil
+
+	// If neither retry nor circuit breaker is configured, execute directly
+	if !hasRetries && !hasCircuitBreaker {
+		return c.executeRequest(ctx, method, path, params, body, target, requestConfig)
+	}
+
+	// Build URL for circuit breaker endpoint tracking
+	fullURL, err := c.buildURL(path, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build URL: %w", err)
+	}
+
+	// Check circuit breaker before attempting
+	if hasCircuitBreaker {
+		if c.circuitBreaker.IsOpen(fullURL) {
+			return nil, fmt.Errorf("circuit breaker is open for endpoint: %s", fullURL)
+		}
+
+		if !c.circuitBreaker.CanAttempt(fullURL) {
+			return nil, fmt.Errorf("circuit breaker: too many requests in half-open state for: %s", fullURL)
+		}
+	}
+
+	// Determine max attempts (at least 1 even if no retries)
+	maxAttempts := 0
+	if hasRetries {
+		maxAttempts = c.config.RetryOptions.MaxRetries
+	}
+
+	var lastErr error
+	var lastResponse *models.Response
+	var lastStatusCode int
+
+	// Retry loop
+	for attempt := 0; attempt <= maxAttempts; attempt++ {
+		// Execute request
+		resp, err := c.executeRequest(ctx, method, path, params, body, target, requestConfig)
+
+		// Success case
+		if err == nil && (resp == nil || resp.StatusCode < 500) {
+			if hasCircuitBreaker {
+				c.circuitBreaker.RecordSuccess(fullURL)
+			}
+			return resp, nil
+		}
+
+		// Store error and response details
+		lastErr = err
+		lastResponse = resp
+		if resp != nil {
+			lastStatusCode = resp.StatusCode
+		}
+
+		// Check if error is retryable
+		httpErr, isHTTPError := err.(*errors.HTTPError)
+		if isHTTPError {
+			lastStatusCode = httpErr.StatusCode
+		}
+
+		// Record failure with circuit breaker
+		if hasCircuitBreaker {
+			c.circuitBreaker.RecordFailure(fullURL)
+
+			// Check if circuit just opened
+			if c.circuitBreaker.IsOpen(fullURL) {
+				return nil, fmt.Errorf("circuit breaker opened after attempt %d: %w", attempt+1, lastErr)
+			}
+		}
+
+		// If no retries configured, return immediately after first attempt
+		if !hasRetries {
+			return resp, err
+		}
+
+		// Check if we should retry
+		shouldRetry := c.retryManager.ShouldRetry(attempt, lastStatusCode, err)
+
+		// Don't retry on last attempt or if not retryable
+		if !shouldRetry || attempt == c.config.RetryOptions.MaxRetries {
+			break
+		}
+
+		// Wait before retry (with backoff and jitter)
+		c.retryManager.Wait(attempt)
+
+		// Check context cancellation
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("request cancelled during retry: %w", ctx.Err())
+		default:
+			// Continue to next attempt
+		}
+	}
+
+	// Return the last error after all retries exhausted
+	return lastResponse, lastErr
 }
 
 // executeRequest executes an HTTP request with all interceptors and error handling.
@@ -261,12 +387,12 @@ func (c *Client) executeRequest(ctx context.Context, method, path string, params
 
 // Get performs a GET request.
 func (c *Client) Get(ctx context.Context, path string, params map[string]interface{}, target interface{}) (*models.Response, error) {
-	return c.executeRequest(ctx, http.MethodGet, path, params, nil, target, nil)
+	return c.executeRequestWithRetry(ctx, http.MethodGet, path, params, nil, target, nil)
 }
 
 // Post performs a POST request.
 func (c *Client) Post(ctx context.Context, path string, params map[string]interface{}, body interface{}, target interface{}) (*models.Response, error) {
-	return c.executeRequest(ctx, http.MethodPost, path, params, body, target, nil)
+	return c.executeRequestWithRetry(ctx, http.MethodPost, path, params, body, target, nil)
 }
 
 // Config returns the client configuration for testing purposes.
@@ -276,15 +402,15 @@ func (c *Client) Config() *models.Config {
 
 // Put performs a PUT request.
 func (c *Client) Put(ctx context.Context, path string, params map[string]interface{}, body interface{}, target interface{}) (*models.Response, error) {
-	return c.executeRequest(ctx, http.MethodPut, path, params, body, target, nil)
+	return c.executeRequestWithRetry(ctx, http.MethodPut, path, params, body, target, nil)
 }
 
 // Patch performs a PATCH request.
 func (c *Client) Patch(ctx context.Context, path string, params map[string]interface{}, body interface{}, target interface{}) (*models.Response, error) {
-	return c.executeRequest(ctx, http.MethodPatch, path, params, body, target, nil)
+	return c.executeRequestWithRetry(ctx, http.MethodPatch, path, params, body, target, nil)
 }
 
 // Delete performs a DELETE request.
 func (c *Client) Delete(ctx context.Context, path string, params map[string]interface{}, target interface{}) (*models.Response, error) {
-	return c.executeRequest(ctx, http.MethodDelete, path, params, nil, target, nil)
+	return c.executeRequestWithRetry(ctx, http.MethodDelete, path, params, nil, target, nil)
 }

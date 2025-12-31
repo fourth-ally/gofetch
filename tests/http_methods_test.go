@@ -16,7 +16,7 @@ func TestGetRequest(t *testing.T) {
 			t.Errorf("Expected GET request, got %s", r.Method)
 		}
 
-		user := TestUser{ID: 1, Name: "John Doe", Email: "john@example.com"}
+		user := TestUser{ID: 1, Name: "Nikos Doe", Email: "Nikos@example.com"}
 		json.NewEncoder(w).Encode(user)
 	}))
 	defer server.Close()
@@ -33,8 +33,8 @@ func TestGetRequest(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
 	}
 
-	if user.Name != "John Doe" {
-		t.Errorf("Expected name 'John Doe', got %s", user.Name)
+	if user.Name != "Nikos Doe" {
+		t.Errorf("Expected name 'Nikos Doe', got %s", user.Name)
 	}
 }
 

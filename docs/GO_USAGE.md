@@ -66,8 +66,8 @@ fmt.Printf("Retrieved %d users\n", len(users))
 
 ```go
 newUser := User{
-    Name:  "John Doe",
-    Email: "john@example.com",
+    Name:  "Nikos Doe",
+    Email: "Nikos@example.com",
 }
 
 var createdUser User
@@ -182,6 +182,59 @@ client := gofetch.NewClient().
     })
 ```
 
+### Retry Logic & Circuit Breaker
+
+```go
+import (
+    "time"
+    "github.com/fourth-ally/gofetch/domain/models"
+)
+
+// Configure automatic retry with exponential backoff
+client := gofetch.NewClient().
+    SetBaseURL("https://api.example.com").
+    SetRetryOptions(&models.RetryOptions{
+        MaxRetries:                     3,
+        InitialDelay:                   100 * time.Millisecond,
+        MaxDelay:                       30 * time.Second,
+        Backoff:                        models.BackoffExponential, // or BackoffLinear, BackoffFixed
+        Jitter:                         true,
+        JitterFraction:                 0.3, // 30% jitter
+        RetryOnStatusCodes:             []int{429, 503}, // Retry on rate limit and service unavailable
+        
+        // Circuit breaker configuration
+        CircuitBreaker:                 true,
+        CircuitBreakerThreshold:        5,              // Open circuit after 5 failures
+        CircuitBreakerTimeout:          60 * time.Second, // Keep circuit open for 60 seconds
+        CircuitBreakerHalfOpenRequests: 1,              // Allow 1 request in half-open state
+    })
+
+var users []User
+resp, err := client.Get(context.Background(), "/users", nil, &users)
+// Request will automatically retry on failure with exponential backoff
+// Circuit breaker will prevent requests to repeatedly failing endpoints
+```
+
+**Backoff Strategies:**
+- `BackoffExponential`: Delay doubles after each retry (100ms, 200ms, 400ms, 800ms...)
+- `BackoffLinear`: Delay increases linearly (100ms, 200ms, 300ms, 400ms...)
+- `BackoffFixed`: Same delay between retries (100ms, 100ms, 100ms...)
+
+**Circuit Breaker States:**
+- **Closed**: Normal operation, requests pass through
+- **Open**: Too many failures, all requests blocked for timeout period
+- **Half-Open**: Timeout expired, allowing limited requests to test recovery
+
+```go
+// Use circuit breaker without retries (fail fast on repeated failures)
+client.SetRetryOptions(&models.RetryOptions{
+    MaxRetries:                  0, // No retries
+    CircuitBreaker:              true,
+    CircuitBreakerThreshold:     3,
+    CircuitBreakerTimeout:       30 * time.Second,
+})
+```
+
 ### Progress Tracking
 
 ```go
@@ -267,6 +320,7 @@ gofetch/
 - `SetTimeout(duration time.Duration) *Client` - Set request timeout
 - `SetHeader(key, value string) *Client` - Set default header
 - `SetStatusValidator(func(int) bool) *Client` - Set custom status validator
+- `SetRetryOptions(*RetryOptions) *Client` - Configure retry logic and circuit breaker
 - `NewInstance() *Client` - Create derived client with inherited settings
 
 #### Interceptors & Transformers
@@ -342,8 +396,8 @@ go tool cover -func=coverage.out | tail -1
 ### Coverage Requirements
 
 - **Minimum Required**: 80%
-- **Current Coverage**: 87.7% ✅
-- **Total Tests**: 20
+- **Current Coverage**: 80.8% ✅
+- **Total Tests**: 31
 
 All contributions must maintain the 80% minimum coverage threshold.
 

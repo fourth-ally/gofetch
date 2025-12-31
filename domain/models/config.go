@@ -9,6 +9,7 @@ type Config struct {
 	Timeout         time.Duration
 	Headers         map[string]string
 	StatusValidator func(int) bool
+	RetryOptions    *RetryOptions
 }
 
 // NewConfig creates a new Config with default values.
@@ -32,11 +33,22 @@ func (c *Config) Clone() *Config {
 		headers[k] = v
 	}
 
+	var retryOpts *RetryOptions
+	if c.RetryOptions != nil {
+		retryOptsCopy := *c.RetryOptions
+		if len(c.RetryOptions.RetryOnStatusCodes) > 0 {
+			retryOptsCopy.RetryOnStatusCodes = make([]int, len(c.RetryOptions.RetryOnStatusCodes))
+			copy(retryOptsCopy.RetryOnStatusCodes, c.RetryOptions.RetryOnStatusCodes)
+		}
+		retryOpts = &retryOptsCopy
+	}
+
 	return &Config{
 		BaseURL:         c.BaseURL,
 		Timeout:         c.Timeout,
 		Headers:         headers,
 		StatusValidator: c.StatusValidator,
+		RetryOptions:    retryOpts,
 	}
 }
 
@@ -58,6 +70,10 @@ func (c *Config) Merge(other *Config) *Config {
 
 	if other.StatusValidator != nil {
 		merged.StatusValidator = other.StatusValidator
+	}
+
+	if other.RetryOptions != nil {
+		merged.RetryOptions = other.RetryOptions
 	}
 
 	return merged
