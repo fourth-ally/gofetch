@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [1.0.12] - TBD
+## [1.0.13] - 2026-01-01
+
+### Fixed
+- Added missing TypeScript definitions for `setRetryOptions` method
+- Added `RetryOptions` interface with complete type documentation
+- Added `BackoffStrategy` type definition
+- Updated build script to generate correct TypeScript definitions
+
+### Changed
+- Complete TypeScript IntelliSense support for retry and circuit breaker configuration
+
+## [1.0.12] - 2025-12-31
 
 ### Added
 - **Retry Logic**: Automatic request retry with configurable max attempts
