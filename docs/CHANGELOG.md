@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.14] - 2026-01-01
+
+### Fixed
+- Added missing JavaScript export for `setRetryOptions` method
+- Updated build script to generate complete exports in `gofetch.js`
+- Added `setRetryOptions` to both named exports and default export object
+
+### Changed
+- Complete JavaScript API compatibility for retry and circuit breaker configuration
+- All three import patterns now work: `client.setRetryOptions()`, named import, and default import
+
 ## [1.0.13] - 2026-01-01
 
 ### Fixed

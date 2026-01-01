@@ -683,6 +683,11 @@ export async function setHeader(key, value) {
   return gf.setHeader(key, value);
 }
 
+export async function setRetryOptions(options) {
+  const gf = await initGoFetch();
+  return gf.setRetryOptions(options);
+}
+
 // Default export
 export default {
   newClient,
@@ -693,5 +698,6 @@ export default {
   delete: del,
   setBaseURL,
   setTimeout,
-  setHeader
+  setHeader,
+  setRetryOptions
 };

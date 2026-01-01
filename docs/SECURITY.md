@@ -6,17 +6,19 @@ The following versions of this project are currently supported with security upd
 
 | Version | Supported | Notes |
 | ------- | --------- | ----- |
-| 1.0.13   | ✅         | Latest - includes retry logic & circuit breaker with TypeScript types |
-| 1.0.12   | ⚠️         | Missing TypeScript definitions - upgrade to 1.0.13 |
+| 1.0.14   | ✅         | Latest - includes retry logic & circuit breaker with complete exports |
+| 1.0.13   | ⚠️         | Missing JavaScript exports - upgrade to 1.0.14 |
+| 1.0.12   | ⚠️         | Missing TypeScript definitions - upgrade to 1.0.14 |
 | 1.0.11   | ⚠️         | No retry/circuit breaker features |
 | 1.0.10   | ❌         | No longer supported |
 | < 1.0.10 | ❌         | No longer supported |
 
-> **Note:** Only versions 1.0.11 and above receive security fixes. Users are strongly encouraged to upgrade to version 1.0.13 for the latest features and complete TypeScript support.
+> **Note:** Only versions 1.0.11 and above receive security fixes. Users are strongly encouraged to upgrade to version 1.0.14 for the latest features and complete API exports.
 
 > **Feature Availability:** 
 > - Retry logic and circuit breaker features are only available in version 1.0.12+
 > - Complete TypeScript definitions for `setRetryOptions` are only available in version 1.0.13+
+> - Complete JavaScript exports for `setRetryOptions` are only available in version 1.0.14+
 
 ---
 

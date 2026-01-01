@@ -1,6 +1,6 @@
 {
   "name": "gofetch-wasm",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A robust HTTP client library compiled from Go to WebAssembly for JavaScript/TypeScript applications",
   "main": "dist/gofetch.js",
   "types": "dist/gofetch.d.ts",
