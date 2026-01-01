@@ -218,6 +218,33 @@ export interface GoFetchResponse {
   rawBody: string;
 }
 
+export type BackoffStrategy = 'exponential' | 'linear' | 'fixed';
+
+export interface RetryOptions {
+  /** Maximum number of retry attempts (0 = no retries) */
+  maxRetries?: number;
+  /** Initial delay before first retry in milliseconds */
+  initialDelay?: number;
+  /** Maximum delay between retries in milliseconds */
+  maxDelay?: number;
+  /** Backoff strategy: exponential, linear, or fixed */
+  backoff?: BackoffStrategy;
+  /** Enable random jitter to prevent thundering herd */
+  jitter?: boolean;
+  /** Fraction of delay to randomize (0.0 - 1.0, default 0.3) */
+  jitterFraction?: number;
+  /** Additional HTTP status codes to retry (e.g., [429, 503]) */
+  retryOnStatusCodes?: number[];
+  /** Enable circuit breaker functionality */
+  circuitBreaker?: boolean;
+  /** Number of consecutive failures before opening circuit */
+  circuitBreakerThreshold?: number;
+  /** How long circuit stays open in milliseconds */
+  circuitBreakerTimeout?: number;
+  /** Number of requests allowed in half-open state */
+  circuitBreakerHalfOpenRequests?: number;
+}
+
 export interface GoFetchClient {
   get(path: string, params?: Record<string, any>): Promise<GoFetchResponse>;
   post(path: string, params?: Record<string, any>, body?: any): Promise<GoFetchResponse>;
@@ -227,6 +254,7 @@ export interface GoFetchClient {
   setBaseURL(url: string): GoFetchClient;
   setTimeout(ms: number): GoFetchClient;
   setHeader(key: string, value: string): GoFetchClient;
+  setRetryOptions(options: RetryOptions): GoFetchClient;
   newInstance(): GoFetchClient;
 }
 
