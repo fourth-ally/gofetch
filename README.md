@@ -2,6 +2,8 @@
 
 A robust HTTP client library compiled from Go to WebAssembly for use in JavaScript/TypeScript applications.
 
+> **⚠️ Important:** If you're using version 1.0.12 or 1.0.13, please upgrade to **1.0.14** for complete API exports. Earlier versions are missing critical exports for `setRetryOptions()`.
+
 ## Installation
 
 ```bash

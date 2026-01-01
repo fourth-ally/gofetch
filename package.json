@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "node scripts/build-npm.js",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "postinstall": "node -e \"console.log('\\n⚠️  gofetch-wasm: You are using v1.0.14. If upgrading from 1.0.12 or 1.0.13, this version includes complete API exports for setRetryOptions().\\n')\""
   },
   "keywords": [
     "http",
